@@ -22,7 +22,7 @@ struct Game {
   @State currentShape: ShapeDefinition = GameConstants.ALL_SHAPES[0];
   @State displayedScore: number = 0;
   @Watch('onTargetScoreChange') @State targetScore: number = 0;
-  @State bestScore: number = AppStorage.get('bestScore') as number;
+  @State bestScore: number = (AppStorage.get<number>('bestScore') ?? 0);
   @State cellAnimationState: Map<string, 'clearing' | 'cleared'> = new Map();
   @State dropZoneArea: Area = {
     width: 0,
@@ -135,25 +135,25 @@ struct Game {
       }
 
       GameBoard({
-        gridState: this.gridState,
-        cellAnimationState: this.cellAnimationState,
-        highlightCells: this.highlightCells,
+        gridState: $gridState,
+        cellAnimationState: $cellAnimationState,
+        highlightCells: $highlightCells,
         currentShape: this.currentShape,
-        dropZoneArea: this.dropZoneArea
+        dropZoneArea: $dropZoneArea
       })
 
       SourceArea({
         currentShape: $currentShape,
-        isGameOver: this.isGameOver,
+        isGameOver: $isGameOver,
         visualOffsetX: $visualOffsetX,
         visualOffsetY: $visualOffsetY,
         isDragging: $isDragging,
         highlightCells: $highlightCells,
-        dropZoneArea: this.dropZoneArea,
-        gridState: this.gridState,
-        targetScore: this.targetScore,
-        cellAnimationState: this.cellAnimationState,
-        bestScore: this.bestScore
+        dropZoneArea: $dropZoneArea,
+        gridState: $gridState,
+        targetScore: $targetScore,
+        cellAnimationState: $cellAnimationState,
+        bestScore: $bestScore
       })
 
     }.width('100%').height('100%').padding(20).backgroundColor('#3E57C5')

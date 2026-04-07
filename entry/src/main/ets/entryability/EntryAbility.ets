@@ -17,9 +17,9 @@ export default class EntryAbility extends UIAbility {
   onWindowStageCreate(windowStage: window.WindowStage): void {
     // Main window is created, set main page for this ability
     Logger.info(TAG, '%{public}s', 'Ability onWindowStageCreate');
+    PersistentStorage.persistProp('bestScore', 0);
     windowStage.loadContent('pages/Index', (err, data) => {
       AppStorage.setOrCreate('uiContext', windowStage.getMainWindowSync().getUIContext());
-      PersistentStorage.persistProp('bestScore',0);
       if (err.code) {
         Logger.error(TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
         return;

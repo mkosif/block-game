@@ -122,7 +122,7 @@ export struct SourceArea {
     this.generateNewShape();
     if (!this.canNextShapeBePlaced()) {
       this.isGameOver = true;
-      if (this.targetScore > this.bestScore) {
+      if (this.targetScore > (this.bestScore ?? 0)) {
         AppStorage.set('bestScore', this.targetScore);
         this.bestScore = this.targetScore;
       }
@@ -234,5 +234,5 @@ let randSeed: number = Date.now() & 0xffffffff;
 
 function rand(): number {
   randSeed = (1664525 * randSeed + 1013904223) >>> 0;
-  return randSeed / 0xffffffff;
+  return randSeed / 0x100000000;
 }
