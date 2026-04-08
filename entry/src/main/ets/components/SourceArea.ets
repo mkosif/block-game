@@ -215,7 +215,7 @@ export struct SourceArea {
       .animation({ duration: 500, curve: Curve.EaseOut })
       .scale(this.isDragging ? { x: 1.2, y: 1.2 } : { x: 1.0, y: 1.0 })
       .zIndex(100)
-      .margin(10)
+      .margin(6)
       .gesture(
         PanGesture({
           distance: (this.isGameOver || this.isLineClearing) ? 10000 : 10
@@ -263,7 +263,7 @@ export struct SourceArea {
           })
       )
     }
-    .height(this.shapeMaxRow * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE + 20)
+    .height(Math.max(88, this.shapeMaxRow * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE + 12))
     .width('100%')
   }
 }

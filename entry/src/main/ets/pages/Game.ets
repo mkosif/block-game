@@ -129,21 +129,11 @@ struct Game {
       Stack() {
         Column() {
           Column() {
-            Row() {
-              Image($r('app.media.crown')).width(28).height(28)
-              Text(`${this.bestScore}`)
-                .fontColor('#ffef960a')
-                .fontWeight(FontWeight.Bold)
-                .fontSize(18)
-            }.width('100%').justifyContent(FlexAlign.Center)
-
-            Row() {
-              Text(this.displayedScore.toString())
-                .fontSize(24)
-                .fontWeight(FontWeight.Bold)
-                .fontColor(Color.White)
-                .padding(4)
-            }.width('100%').justifyContent(FlexAlign.Center)
+            Text(this.displayedScore.toString())
+              .fontSize(30)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(Color.White)
+              .padding({ top: 2, bottom: 6 })
           }
           .gesture(
             LongPressGesture({ duration: 600 })
@@ -174,8 +164,12 @@ struct Game {
             bestScore: $bestScore,
             resetCounter: $resetCounter
           })
+          .margin({ top: -22 })
 
-        }.width('100%').height('100%').padding(10).backgroundColor('#3E57C5')
+        }.width('100%')
+          .height('100%')
+          .padding({ left: 8, right: 8, top: 6, bottom: 8 })
+          .backgroundColor('#3E57C5')
 
         if (this.isGameOver) {
           Column() {

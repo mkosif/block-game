@@ -15,8 +15,14 @@ struct GameOver {
   private scoreAnimationInterval: number = -1;
   pageInfos: NavPathStack = new NavPathStack();
 
-  aboutToAppear(): void {
+  private syncScoresFromStorage(): void {
     this.bestScore = AppStorage.get<number>('bestScore') ?? 0;
+    this.targetScore = AppStorage.get<number>('score') ?? 0;
+  }
+
+  aboutToAppear(): void {
+    this.syncScoresFromStorage();
+    this.score = this.targetScore;
   }
 
   aboutToDisappear(): void {
@@ -27,8 +33,8 @@ struct GameOver {
   }
 
   onPageShow(): void {
-    this.targetScore = AppStorage.get<number>('score') ?? 0;
-    this.startScoreAnimation()
+    this.syncScoresFromStorage();
+    this.score = this.targetScore;
   }
 
   startScoreAnimation() {

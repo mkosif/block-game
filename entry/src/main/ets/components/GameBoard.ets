@@ -37,11 +37,10 @@ export struct GameBoard {
         GridItem() {
           if (this.gridState[cell.row][cell.col] !== null) {
             Text()
-              .width('100%')
-              .height('100%')
+              .width('90%')
+              .height('90%')
               .backgroundColor(this.gridState[cell.row][cell.col] as Resource)
               .borderRadius(4)
-              .padding(4)
               .scale(this.cellAnimationState.get(cell.id) === 'clearing'
                 ? { x: 1.3, y: 1.3 }
                 : { x: 1, y: 1 })
@@ -49,15 +48,15 @@ export struct GameBoard {
               .animation({ duration: 300, curve: Curve.EaseIn })
           } else if (this.isHighlighted(cell.row, cell.col)) {
             Text()
-              .width('95%')
-              .height('95%')
+              .width('90%')
+              .height('90%')
               .backgroundColor(this.currentShape.color)
               .opacity(0.5)
               .borderRadius(4)
           } else {
             Column()
-              .width('95%')
-              .height('95%')
+              .width('90%')
+              .height('90%')
               .backgroundColor(Color.Transparent)
               .border({ width: 1, color: '#20284E' })
           }
@@ -67,10 +66,10 @@ export struct GameBoard {
     .backgroundColor('#242C54')
     .columnsTemplate(Array(GameConstants.GRID_SIZE).fill('1fr').join(' '))
     .rowsTemplate(Array(GameConstants.GRID_SIZE).fill('1fr').join(' '))
-    .width('50%')
+    .width('62%')
     .aspectRatio(1)
     .onAreaChange((_, area) => this.dropZoneArea = area)
-    .margin({ bottom: 15 })
+    .margin({ bottom: 10 })
     .borderRadius(4)
     .padding(4)
   }
