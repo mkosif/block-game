@@ -20,8 +20,8 @@ Quick entertainment during free time with its simple yet addictive gameplay mech
 # Tech Stack
 
 - **Languages**: ArkTS
-- **Frameworks**: HarmonyOS SDK 5.1.0(18)
-- **Tools**: DevEco Studio Vers 5.1.0.842
+- **Frameworks**: HarmonyOS SDK 6.0.0(20)
+- **Tools**: DevEco Studio 6.x
 - **Libraries**: @kit.ArkUI, @ohos/lottie
 
 # Directory Structure
