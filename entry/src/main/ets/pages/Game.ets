@@ -40,7 +40,7 @@ struct Game {
     if (this.isGameOver) {
       this.fillGridForGameOver();
       setTimeout(() => {
-        AppStorage.setOrCreate('score', this.displayedScore);
+        AppStorage.setOrCreate('score', this.targetScore);
         this.pageInfos.pushPathByName('GameOver', '')
       }, 1200)
     }
@@ -93,6 +93,13 @@ struct Game {
 
   aboutToAppear() {
     this.initializeGridState();
+  }
+
+  aboutToDisappear() {
+    if (this.scoreAnimationInterval !== -1) {
+      clearInterval(this.scoreAnimationInterval);
+      this.scoreAnimationInterval = -1;
+    }
   }
 
   initializeGridState() {

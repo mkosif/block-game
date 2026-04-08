@@ -3,7 +3,7 @@ import { Cell, PlacementInfo, ShapeDefinition } from '../model/Game';
 
 @Component
 export struct SourceArea {
-  @Link currentShape: ShapeDefinition;
+  @Watch('onShapeChanged') @Link currentShape: ShapeDefinition;
   @Link isGameOver: boolean;
   @Link visualOffsetX: number;
   @Link visualOffsetY: number;
@@ -16,6 +16,8 @@ export struct SourceArea {
   @Link bestScore: number;
   @State isLineClearing: boolean = false;
   @State showShape: boolean = false;
+  @State shapeMaxCol: number = 0;
+  @State shapeMaxRow: number = 0;
   @State draggableBlockArea: Area = {
     width: 0,
     height: 0,
@@ -24,7 +26,17 @@ export struct SourceArea {
   };
 
   aboutToAppear(): void {
+    this.updateShapeDimensions();
     this.generateNewShapeAndCheckGameOver()
+  }
+
+  private onShapeChanged(): void {
+    this.updateShapeDimensions();
+  }
+
+  private updateShapeDimensions(): void {
+    this.shapeMaxCol = Math.max(...this.currentShape.cells.map(c => c.col));
+    this.shapeMaxRow = Math.max(...this.currentShape.cells.map(c => c.row));
   }
 
   private resetDraggableBlock() {
@@ -109,7 +121,7 @@ export struct SourceArea {
         });
         this.gridState = newGrid;
         this.isLineClearing = false;
-        this.cellAnimationState.clear();
+        this.cellAnimationState = new Map();
         this.generateNewShapeAndCheckGameOver();
       }, totalAnimationTime);
 
@@ -177,8 +189,8 @@ export struct SourceArea {
 
         }, (cell: Cell, index: number) => `${this.currentShape.name}-${cell.row}-${cell.col}`)
       }
-      .width((Math.max(...this.currentShape.cells.map(c => c.col)) + 1) * GameConstants.BLOCK_PREVIEW_SIZE)
-      .height((Math.max(...this.currentShape.cells.map(c => c.row)) + 1) * GameConstants.BLOCK_PREVIEW_SIZE)
+      .width(this.shapeMaxCol * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE)
+      .height(this.shapeMaxRow * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE)
       .onAreaChange((_, area) => {
         this.draggableBlockArea = area;
       })
@@ -226,7 +238,7 @@ export struct SourceArea {
           })
       )
     }
-    .height(30)
+    .height(this.shapeMaxRow * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE + 20)
     .width('100%')
   }
 }

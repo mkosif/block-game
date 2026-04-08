@@ -16,11 +16,18 @@ struct GameOver {
   pageInfos: NavPathStack = new NavPathStack();
 
   aboutToAppear(): void {
-    this.bestScore = AppStorage.get('bestScore') as number;
+    this.bestScore = AppStorage.get<number>('bestScore') ?? 0;
+  }
+
+  aboutToDisappear(): void {
+    if (this.scoreAnimationInterval !== -1) {
+      clearInterval(this.scoreAnimationInterval);
+      this.scoreAnimationInterval = -1;
+    }
   }
 
   onPageShow(): void {
-    this.targetScore = AppStorage.get('score') as number;
+    this.targetScore = AppStorage.get<number>('score') ?? 0;
     this.startScoreAnimation()
   }
 
@@ -90,6 +97,7 @@ struct GameOver {
             fontColor: ColorMetrics.resourceColor($r('app.color.gameover_bg_blue')),
             backgroundColor: ColorMetrics.resourceColor('#FFF'),
             onClick: () => {
+              this.pageInfos.clear();
               this.pageInfos.pushPathByName('Game', '')
             }
           })
