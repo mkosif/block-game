@@ -2,7 +2,7 @@ import { ShapeDefinition } from '../model/Game';
 
 export class GameConstants {
   static readonly GRID_SIZE = 5;
-  static readonly BLOCK_PREVIEW_SIZE = 15;
+  static readonly BLOCK_PREVIEW_SIZE = 17;
   static readonly CLEAR_ANIMATION_DELAY_MS = 60;
   static readonly GAMEOVER_FILL_DELAY_MS = 5;
   static readonly ALL_SHAPES: ShapeDefinition[] = [

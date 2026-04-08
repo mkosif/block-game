@@ -2,6 +2,9 @@ import { GameConstants } from '../common/GameConstants';
 import { Cell, PlacementInfo, ShapeDefinition } from '../model/Game';
 import vibrator from '@ohos.vibrator';
 
+const PREVIEW_GAP = 3;
+const SOURCE_TRAY_HEIGHT = 94;
+
 @Component
 export struct SourceArea {
   @Watch('onShapeChanged') @Link currentShape: ShapeDefinition;
@@ -200,20 +203,20 @@ export struct SourceArea {
               .backgroundColor(this.isDragInvalid ? Color.Red : this.currentShape.color)
               .borderRadius(4)
               .position({
-                x: cell.col * (GameConstants.BLOCK_PREVIEW_SIZE + 2),
-                y: cell.row * (GameConstants.BLOCK_PREVIEW_SIZE + 2)
+                x: cell.col * (GameConstants.BLOCK_PREVIEW_SIZE + PREVIEW_GAP),
+                y: cell.row * (GameConstants.BLOCK_PREVIEW_SIZE + PREVIEW_GAP)
               })
           }
         }, (cell: Cell) => `${this.currentShape.name}-${cell.row}-${cell.col}`)
       }
-      .width(this.shapeMaxCol * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE)
-      .height(this.shapeMaxRow * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE)
+      .width(this.shapeMaxCol * (GameConstants.BLOCK_PREVIEW_SIZE + PREVIEW_GAP) + GameConstants.BLOCK_PREVIEW_SIZE)
+      .height(this.shapeMaxRow * (GameConstants.BLOCK_PREVIEW_SIZE + PREVIEW_GAP) + GameConstants.BLOCK_PREVIEW_SIZE)
       .onAreaChange((_, area) => {
         this.draggableBlockArea = area;
       })
       .translate({ x: this.visualOffsetX, y: this.visualOffsetY })
       .animation({ duration: 500, curve: Curve.EaseOut })
-      .scale(this.isDragging ? { x: 1.2, y: 1.2 } : { x: 1.0, y: 1.0 })
+      .scale(this.isDragging ? { x: 1.24, y: 1.24 } : { x: 1.0, y: 1.0 })
       .zIndex(100)
       .margin(6)
       .gesture(
@@ -225,7 +228,7 @@ export struct SourceArea {
           })
           .onActionUpdate((e: GestureEvent) => {
             this.visualOffsetX = e.offsetX;
-            const liftOffset = (this.draggableBlockArea.height as number) * 0.6;
+            const liftOffset = (this.draggableBlockArea.height as number) * 0.8;
             this.visualOffsetY = e.offsetY - liftOffset;
             const blockGlobalX = (this.draggableBlockArea.globalPosition.x as number);
             const blockGlobalY = (this.draggableBlockArea.globalPosition.y as number);
@@ -263,7 +266,8 @@ export struct SourceArea {
           })
       )
     }
-    .height(Math.max(88, this.shapeMaxRow * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE + 12))
+    .height(Math.max(SOURCE_TRAY_HEIGHT, this.shapeMaxRow * (GameConstants.BLOCK_PREVIEW_SIZE + PREVIEW_GAP) +
+      GameConstants.BLOCK_PREVIEW_SIZE + 14))
     .width('100%')
   }
 }

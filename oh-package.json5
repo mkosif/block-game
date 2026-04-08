@@ -5,5 +5,7 @@
   "dependencies": {
     "@ohos/lottie": "^2.0.22"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@ohos/hypium": "1.0.25"
+  }
 }
