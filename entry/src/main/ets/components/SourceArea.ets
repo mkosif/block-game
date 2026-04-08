@@ -24,12 +24,15 @@ export struct SourceArea {
   @State isDragInvalid: boolean = false;
   @State shapeMaxCol: number = 0;
   @State shapeMaxRow: number = 0;
+  @State snapBackDuration: number = 0;
   @State draggableBlockArea: Area = {
     width: 0,
     height: 0,
     position: { x: 0, y: 0 },
     globalPosition: { x: 0, y: 0 }
   };
+  private hoverAnchorRow: number = -999;
+  private hoverAnchorCol: number = -999;
 
   aboutToAppear(): void {
     this.updateShapeDimensions();
@@ -60,28 +63,47 @@ export struct SourceArea {
   }
 
   private resetDraggableBlock() {
+    this.snapBackDuration = 220;
     this.visualOffsetX = 0;
     this.visualOffsetY = 0;
     this.highlightCells = [];
+    this.hoverAnchorRow = -999;
+    this.hoverAnchorCol = -999;
   }
 
-  getPlacementInfo(finalGlobalX: number, finalGlobalY: number): PlacementInfo {
+  private getAnchorCell(finalGlobalX: number, finalGlobalY: number): Cell {
     const dropZoneWidth = this.dropZoneArea.width as number;
     const dropZoneHeight = this.dropZoneArea.height as number;
     const dropZoneGlobalX = this.dropZoneArea.globalPosition.x as number;
     const dropZoneGlobalY = this.dropZoneArea.globalPosition.y as number;
     const cellWidth = dropZoneWidth / GameConstants.GRID_SIZE;
     const cellHeight = dropZoneHeight / GameConstants.GRID_SIZE;
-    const anchorRelativeX = finalGlobalX - dropZoneGlobalX;
-    const anchorRelativeY = finalGlobalY - dropZoneGlobalY;
-    const anchorCol = Math.floor(anchorRelativeX / cellWidth);
-    const anchorRow = Math.floor(anchorRelativeY / cellHeight);
+    return {
+      row: Math.floor((finalGlobalY - dropZoneGlobalY) / cellHeight),
+      col: Math.floor((finalGlobalX - dropZoneGlobalX) / cellWidth)
+    };
+  }
+
+  private updateHighlightForPointer(finalGlobalX: number, finalGlobalY: number): void {
+    const anchor = this.getAnchorCell(finalGlobalX, finalGlobalY);
+    if (anchor.row === this.hoverAnchorRow && anchor.col === this.hoverAnchorCol) {
+      return;
+    }
+
+    this.hoverAnchorRow = anchor.row;
+    this.hoverAnchorCol = anchor.col;
+    const placement = this.getPlacementInfo(finalGlobalX, finalGlobalY);
+    this.highlightCells = placement.canPlace ? placement.targetCells : [];
+  }
+
+  getPlacementInfo(finalGlobalX: number, finalGlobalY: number): PlacementInfo {
+    const anchor = this.getAnchorCell(finalGlobalX, finalGlobalY);
     const targetCells: Cell[] = [];
     let canPlace = true;
 
     for (const shapeCell of this.currentShape.cells) {
-      const targetRow = anchorRow + shapeCell.row;
-      const targetCol = anchorCol + shapeCell.col;
+      const targetRow = anchor.row + shapeCell.row;
+      const targetCol = anchor.col + shapeCell.col;
       if (targetRow < 0 || targetRow >= GameConstants.GRID_SIZE ||
         targetCol < 0 || targetCol >= GameConstants.GRID_SIZE ||
         this.gridState[targetRow][targetCol] !== null) {
@@ -127,15 +149,13 @@ export struct SourceArea {
       this.targetScore += cellsToClear.length * 10;
       this.triggerHaptic(120);
 
-      cellsToClear.forEach((cell, index) => {
-        const key = `${cell.row}-${cell.col}`;
-        setTimeout(() => {
-          this.cellAnimationState.set(key, 'clearing');
-          this.cellAnimationState = new Map(this.cellAnimationState);
-        }, index * GameConstants.CLEAR_ANIMATION_DELAY_MS);
+      const clearingState = new Map<string, 'clearing' | 'cleared'>();
+      cellsToClear.forEach((cell) => {
+        clearingState.set(`${cell.row}-${cell.col}`, 'clearing');
       });
+      this.cellAnimationState = clearingState;
 
-      const totalAnimationTime = cellsToClear.length * GameConstants.CLEAR_ANIMATION_DELAY_MS + 300;
+      const totalAnimationTime = 300;
       setTimeout(() => {
         const newGrid = [...this.gridState.map(row => [...row])];
         cellsToClear.forEach(cell => {
@@ -160,7 +180,7 @@ export struct SourceArea {
         AppStorage.set('bestScore', this.targetScore);
         this.bestScore = this.targetScore;
       }
-      this.triggerHaptic(500);
+      this.triggerHaptic(280);
     }
   }
 
@@ -215,8 +235,9 @@ export struct SourceArea {
         this.draggableBlockArea = area;
       })
       .translate({ x: this.visualOffsetX, y: this.visualOffsetY })
-      .animation({ duration: 500, curve: Curve.EaseOut })
+      .animation({ duration: this.snapBackDuration, curve: Curve.EaseOut })
       .scale(this.isDragging ? { x: 1.24, y: 1.24 } : { x: 1.0, y: 1.0 })
+      .opacity(this.isDragging ? 0.92 : 1)
       .zIndex(100)
       .margin(6)
       .gesture(
@@ -224,16 +245,18 @@ export struct SourceArea {
           distance: (this.isGameOver || this.isLineClearing) ? 10000 : 10
         })
           .onActionStart(() => {
+            this.snapBackDuration = 0;
+            this.hoverAnchorRow = -999;
+            this.hoverAnchorCol = -999;
             this.isDragging = true;
           })
           .onActionUpdate((e: GestureEvent) => {
             this.visualOffsetX = e.offsetX;
-            const liftOffset = (this.draggableBlockArea.height as number) * 0.8;
+            const liftOffset = (this.draggableBlockArea.height as number) * 0.1;
             this.visualOffsetY = e.offsetY - liftOffset;
             const blockGlobalX = (this.draggableBlockArea.globalPosition.x as number);
             const blockGlobalY = (this.draggableBlockArea.globalPosition.y as number);
-            const placement = this.getPlacementInfo(blockGlobalX + e.offsetX, blockGlobalY + e.offsetY);
-            this.highlightCells = placement.canPlace ? placement.targetCells : [];
+            this.updateHighlightForPointer(blockGlobalX + e.offsetX, blockGlobalY + e.offsetY);
           })
           .onActionEnd((e: GestureEvent) => {
             this.isDragging = false;

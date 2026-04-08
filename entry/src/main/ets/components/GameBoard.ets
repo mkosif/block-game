@@ -23,12 +23,21 @@ const BOARD_CELLS: Array<CellRef> = buildBoardCells(GameConstants.GRID_SIZE);
 export struct GameBoard {
   @Link gridState: (Resource | null)[][];
   @Link cellAnimationState: Map<string, 'clearing' | 'cleared'>;
-  @Link highlightCells: Cell[];
+  @Watch('onHighlightCellsChange') @Link highlightCells: Cell[];
   @Prop currentShape: ShapeDefinition;
   @Link dropZoneArea: Area;
+  @State highlightCellKeys: Set<string> = new Set();
+
+  aboutToAppear(): void {
+    this.onHighlightCellsChange();
+  }
+
+  private onHighlightCellsChange(): void {
+    this.highlightCellKeys = new Set(this.highlightCells.map((cell: Cell) => `${cell.row}-${cell.col}`));
+  }
 
   private isHighlighted(row: number, col: number): boolean {
-    return this.highlightCells.some((c: Cell) => c.row === row && c.col === col);
+    return this.highlightCellKeys.has(`${row}-${col}`);
   }
 
   build() {

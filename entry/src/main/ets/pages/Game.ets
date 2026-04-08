@@ -71,11 +71,11 @@ struct Game {
       clearInterval(this.scoreAnimationInterval);
     }
 
-    const interval = 20;
+    const interval = 40;
     this.scoreAnimationInterval = setInterval(() => {
       if (this.displayedScore < this.targetScore) {
         const diff = this.targetScore - this.displayedScore;
-        const step = Math.max(1, Math.ceil(diff / 15));
+        const step = Math.max(1, Math.ceil(diff / 8));
         this.displayedScore += step;
         if (this.displayedScore > this.targetScore) {
           this.displayedScore = this.targetScore;
@@ -130,7 +130,7 @@ struct Game {
         Column() {
           Column() {
             Text(this.displayedScore.toString())
-              .fontSize(30)
+              .fontSize(28)
               .fontWeight(FontWeight.Bold)
               .fontColor(Color.White)
               .padding({ top: 2, bottom: 6 })
