@@ -1,5 +1,6 @@
 import { GameConstants } from '../common/GameConstants';
 import { Cell, PlacementInfo, ShapeDefinition } from '../model/Game';
+import vibrator from '@ohos.vibrator';
 
 @Component
 export struct SourceArea {
@@ -14,8 +15,10 @@ export struct SourceArea {
   @Link targetScore: number;
   @Link cellAnimationState: Map<string, 'clearing' | 'cleared'>;
   @Link bestScore: number;
+  @Watch('onResetCounterChanged') @Link resetCounter: number;
   @State isLineClearing: boolean = false;
   @State showShape: boolean = false;
+  @State isDragInvalid: boolean = false;
   @State shapeMaxCol: number = 0;
   @State shapeMaxRow: number = 0;
   @State draggableBlockArea: Area = {
@@ -27,16 +30,30 @@ export struct SourceArea {
 
   aboutToAppear(): void {
     this.updateShapeDimensions();
-    this.generateNewShapeAndCheckGameOver()
+    this.generateNewShapeAndCheckGameOver();
   }
 
   private onShapeChanged(): void {
     this.updateShapeDimensions();
   }
 
+  private onResetCounterChanged(): void {
+    this.showShape = false;
+    this.isDragInvalid = false;
+    this.isLineClearing = false;
+    this.generateNewShapeAndCheckGameOver();
+  }
+
   private updateShapeDimensions(): void {
     this.shapeMaxCol = Math.max(...this.currentShape.cells.map(c => c.col));
     this.shapeMaxRow = Math.max(...this.currentShape.cells.map(c => c.row));
+  }
+
+  private triggerHaptic(duration: number): void {
+    vibrator.startVibration(
+      { type: 'time', duration: duration },
+      { id: 0, usage: 'touch' }
+    ).catch(() => {});
   }
 
   private resetDraggableBlock() {
@@ -77,6 +94,7 @@ export struct SourceArea {
     const rowsToCheck = new Set(placedCells.map(c => c.row));
     const colsToCheck = new Set(placedCells.map(c => c.col));
     const cellsToClear: Cell[] = [];
+
     rowsToCheck.forEach(rowIndex => {
       if (this.gridState[rowIndex].every(cell => cell !== null)) {
         for (let j = 0; j < GameConstants.GRID_SIZE; j++) {
@@ -104,6 +122,7 @@ export struct SourceArea {
     if (cellsToClear.length > 0) {
       this.isLineClearing = true;
       this.targetScore += cellsToClear.length * 10;
+      this.triggerHaptic(120);
 
       cellsToClear.forEach((cell, index) => {
         const key = `${cell.row}-${cell.col}`;
@@ -127,7 +146,7 @@ export struct SourceArea {
 
       return true;
     }
-    return false
+    return false;
   }
 
   generateNewShapeAndCheckGameOver() {
@@ -138,6 +157,7 @@ export struct SourceArea {
         AppStorage.set('bestScore', this.targetScore);
         this.bestScore = this.targetScore;
       }
+      this.triggerHaptic(500);
     }
   }
 
@@ -148,11 +168,9 @@ export struct SourceArea {
         for (const shapeCell of this.currentShape.cells) {
           const targetRow = row + shapeCell.row;
           const targetCol = col + shapeCell.col;
-
           if (targetRow >= GameConstants.GRID_SIZE ||
             targetCol >= GameConstants.GRID_SIZE ||
-            this.gridState[targetRow][targetCol] !== null
-          ) {
+            this.gridState[targetRow][targetCol] !== null) {
             canPlaceAtThisPosition = false;
             break;
           }
@@ -174,20 +192,19 @@ export struct SourceArea {
   build() {
     Stack() {
       Stack() {
-        ForEach(this.currentShape.cells, (cell: Cell, index: number) => {
+        ForEach(this.currentShape.cells, (cell: Cell) => {
           if (this.showShape) {
             Text()
               .width(GameConstants.BLOCK_PREVIEW_SIZE)
               .height(GameConstants.BLOCK_PREVIEW_SIZE)
-              .backgroundColor(this.currentShape.color)
+              .backgroundColor(this.isDragInvalid ? Color.Red : this.currentShape.color)
               .borderRadius(4)
               .position({
                 x: cell.col * (GameConstants.BLOCK_PREVIEW_SIZE + 2),
                 y: cell.row * (GameConstants.BLOCK_PREVIEW_SIZE + 2)
               })
           }
-
-        }, (cell: Cell, index: number) => `${this.currentShape.name}-${cell.row}-${cell.col}`)
+        }, (cell: Cell) => `${this.currentShape.name}-${cell.row}-${cell.col}`)
       }
       .width(this.shapeMaxCol * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE)
       .height(this.shapeMaxRow * (GameConstants.BLOCK_PREVIEW_SIZE + 2) + GameConstants.BLOCK_PREVIEW_SIZE)
@@ -204,11 +221,12 @@ export struct SourceArea {
           distance: (this.isGameOver || this.isLineClearing) ? 10000 : 10
         })
           .onActionStart(() => {
-            this.isDragging = true
+            this.isDragging = true;
           })
           .onActionUpdate((e: GestureEvent) => {
             this.visualOffsetX = e.offsetX;
-            this.visualOffsetY = e.offsetY - 30;
+            const liftOffset = (this.draggableBlockArea.height as number) * 0.6;
+            this.visualOffsetY = e.offsetY - liftOffset;
             const blockGlobalX = (this.draggableBlockArea.globalPosition.x as number);
             const blockGlobalY = (this.draggableBlockArea.globalPosition.y as number);
             const placement = this.getPlacementInfo(blockGlobalX + e.offsetX, blockGlobalY + e.offsetY);
@@ -229,10 +247,17 @@ export struct SourceArea {
               });
               this.gridState = newGrid;
               this.targetScore += 10;
+              this.triggerHaptic(30);
               const lineWasCleared = this.checkForCompletedLines(placement.targetCells);
               if (!lineWasCleared) {
                 this.generateNewShapeAndCheckGameOver();
               }
+            } else {
+              this.isDragInvalid = true;
+              this.triggerHaptic(20);
+              setTimeout(() => {
+                this.isDragInvalid = false;
+              }, 200);
             }
             this.resetDraggableBlock();
           })
@@ -242,6 +267,7 @@ export struct SourceArea {
     .width('100%')
   }
 }
+
 let randSeed: number = Date.now() & 0xffffffff;
 
 function rand(): number {

@@ -41,17 +41,14 @@ export default class EntryAbility extends UIAbility {
   }
 
   onWindowStageDestroy(): void {
-    // Main window is destroyed, release UI related resources
-    Logger.error(TAG, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
+    Logger.info(TAG, '%{public}s', 'Ability onWindowStageDestroy');
   }
 
   onForeground(): void {
-    // Ability has brought to foreground
-    Logger.error(TAG, 'testTag', '%{public}s', 'Ability onForeground');
+    Logger.info(TAG, '%{public}s', 'Ability onForeground');
   }
 
   onBackground(): void {
-    // Ability has back to background
-    Logger.error(TAG, 'testTag', '%{public}s', 'Ability onBackground');
+    Logger.info(TAG, '%{public}s', 'Ability onBackground');
   }
 }

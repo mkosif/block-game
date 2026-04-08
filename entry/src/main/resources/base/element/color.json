@@ -5,10 +5,6 @@
       "value": "#FFFFFF"
     },
     {
-      "name": "bottom_background",
-      "value": "#0080FF"
-    },
-    {
       "name": "shape_color_I",
       "value": "#FF338996"
     },
@@ -21,12 +17,20 @@
       "value": "#FFEA8B00"
     },
     {
+      "name": "shape_color_J",
+      "value": "#FF1565C0"
+    },
+    {
       "name": "shape_color_T",
       "value": "#FF7F2C8C"
     },
     {
       "name": "shape_color_S",
       "value": "#FF0F8314"
+    },
+    {
+      "name": "shape_color_Z",
+      "value": "#FFE53935"
     },
     {
       "name": "game_over_block",
