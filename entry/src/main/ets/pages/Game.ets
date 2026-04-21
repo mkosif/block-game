@@ -1,8 +1,8 @@
 import { Cell, ShapeDefinition } from '../model/Game';
 import { GameConstants } from '../common/GameConstants';
+import { createEmptyGrid } from '../model/GameLogic';
 import { SourceArea } from '../components/SourceArea';
 import { GameBoard } from '../components/GameBoard';
-
 
 @Builder
 export function GameBuilder (){
@@ -113,15 +113,7 @@ struct Game {
   }
 
   initializeGridState() {
-    const gridState: (Resource | null)[][] = []
-    for (let i = 0; i < GameConstants.GRID_SIZE; i++) {
-      const grid: (Resource | null)[] = []
-      for (let j = 0; j < GameConstants.GRID_SIZE; j++) {
-        grid.push(null)
-      }
-      gridState.push(grid)
-    }
-    this.gridState = gridState;
+    this.gridState = createEmptyGrid(GameConstants.GRID_SIZE) as (Resource | null)[][];
   }
 
   build() {

@@ -3,9 +3,8 @@
   "name": "BlockGame",
   "description": "Simple Block Game",
   "dependencies": {
-    "@ohos/lottie": "^2.0.22"
-  },
-  "devDependencies": {
+    "@ohos/lottie": "^2.0.22",
     "@ohos/hypium": "1.0.25"
-  }
+  },
+  "devDependencies": {}
 }

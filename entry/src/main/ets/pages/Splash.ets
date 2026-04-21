@@ -1,6 +1,5 @@
 import lottie, { AnimationItem } from '@ohos/lottie';
 
-
 @Builder
 export function SplashBuilder (){
   Splash()
@@ -16,7 +15,6 @@ struct Splash {
   private splashTimerId: number = -1;
   private domLoadedCallback: ((args: Object) => void) | null = null;
   pageInfos: NavPathStack = new NavPathStack();
-
 
   aboutToAppear(): void {
     this.splashTimerId = setTimeout(() => {

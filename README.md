@@ -1,8 +1,8 @@
-> **Note:** To access all shared projects, get information about environment setup, and view other guides, please visit [Explore-In-HMOS-Wearable Index](https://github.com/Explore-In-HMOS-Wearable/hmos-index).
-
 # Block Game
 
 Block Game is a captivating puzzle game that challenges you to fit different block shapes onto a grid, clearing lines to score points.
+
+To access all shared projects, get information about environment setup, and view other guides, please visit [Explore-In-HMOS-Wearable Index](https://github.com/Explore-In-HMOS-Wearable/hmos-index).
 
 # Preview
 

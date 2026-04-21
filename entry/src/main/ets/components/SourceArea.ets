@@ -1,5 +1,13 @@
 import { GameConstants } from '../common/GameConstants';
 import { Cell, PlacementInfo, ShapeDefinition } from '../model/Game';
+import {
+  applyShapeToGrid,
+  canPlaceShape,
+  canShapeBePlacedAnywhere,
+  clearCells,
+  getCompletedLines
+} from '../model/GameLogic';
+import { secureRandomNumber } from '../utils/SecureRandom';
 import vibrator from '@ohos.vibrator';
 
 const PREVIEW_GAP = 3;
@@ -98,70 +106,25 @@ export struct SourceArea {
 
   getPlacementInfo(finalGlobalX: number, finalGlobalY: number): PlacementInfo {
     const anchor = this.getAnchorCell(finalGlobalX, finalGlobalY);
-    const targetCells: Cell[] = [];
-    let canPlace = true;
-
-    for (const shapeCell of this.currentShape.cells) {
-      const targetRow = anchor.row + shapeCell.row;
-      const targetCol = anchor.col + shapeCell.col;
-      if (targetRow < 0 || targetRow >= GameConstants.GRID_SIZE ||
-        targetCol < 0 || targetCol >= GameConstants.GRID_SIZE ||
-        this.gridState[targetRow][targetCol] !== null) {
-        canPlace = false;
-        break;
-      }
-      targetCells.push({ row: targetRow, col: targetCol });
-    }
-    return { targetCells, canPlace };
+    return canPlaceShape(this.gridState, this.currentShape.cells, anchor.row, anchor.col);
   }
 
   checkForCompletedLines(placedCells: Cell[]): boolean {
-    const rowsToCheck = new Set(placedCells.map(c => c.row));
-    const colsToCheck = new Set(placedCells.map(c => c.col));
-    const cellsToClear: Cell[] = [];
-
-    rowsToCheck.forEach(rowIndex => {
-      if (this.gridState[rowIndex].every(cell => cell !== null)) {
-        for (let j = 0; j < GameConstants.GRID_SIZE; j++) {
-          cellsToClear.push({ row: rowIndex, col: j });
-        }
-      }
-    });
-    colsToCheck.forEach(colIndex => {
-      let isColFull = true;
-      for (let i = 0; i < GameConstants.GRID_SIZE; i++) {
-        if (this.gridState[i][colIndex] === null) {
-          isColFull = false;
-          break;
-        }
-      }
-      if (isColFull) {
-        for (let i = 0; i < GameConstants.GRID_SIZE; i++) {
-          if (!cellsToClear.some(cell => cell.row === i && cell.col === colIndex)) {
-            cellsToClear.push({ row: i, col: colIndex });
-          }
-        }
-      }
-    });
-
-    if (cellsToClear.length > 0) {
+    const completedLines = getCompletedLines(this.gridState, placedCells);
+    if (completedLines.cellsToClear.length > 0) {
       this.isLineClearing = true;
-      this.targetScore += cellsToClear.length * 10;
+      this.targetScore += completedLines.cellsToClear.length * 10;
       this.triggerHaptic(120);
 
       const clearingState = new Map<string, 'clearing' | 'cleared'>();
-      cellsToClear.forEach((cell) => {
+      completedLines.cellsToClear.forEach((cell: Cell) => {
         clearingState.set(`${cell.row}-${cell.col}`, 'clearing');
       });
       this.cellAnimationState = clearingState;
 
       const totalAnimationTime = 300;
       setTimeout(() => {
-        const newGrid = [...this.gridState.map(row => [...row])];
-        cellsToClear.forEach(cell => {
-          newGrid[cell.row][cell.col] = null;
-        });
-        this.gridState = newGrid;
+        this.gridState = clearCells(this.gridState, completedLines.cellsToClear) as (Resource | null)[][];
         this.isLineClearing = false;
         this.cellAnimationState = new Map();
         this.generateNewShapeAndCheckGameOver();
@@ -185,29 +148,11 @@ export struct SourceArea {
   }
 
   canNextShapeBePlaced(): boolean {
-    for (let row = 0; row < GameConstants.GRID_SIZE; row++) {
-      for (let col = 0; col < GameConstants.GRID_SIZE; col++) {
-        let canPlaceAtThisPosition = true;
-        for (const shapeCell of this.currentShape.cells) {
-          const targetRow = row + shapeCell.row;
-          const targetCol = col + shapeCell.col;
-          if (targetRow >= GameConstants.GRID_SIZE ||
-            targetCol >= GameConstants.GRID_SIZE ||
-            this.gridState[targetRow][targetCol] !== null) {
-            canPlaceAtThisPosition = false;
-            break;
-          }
-        }
-        if (canPlaceAtThisPosition) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return canShapeBePlacedAnywhere(this.gridState, this.currentShape.cells, GameConstants.GRID_SIZE);
   }
 
-  generateNewShape() {
-    const randomIndex = Math.floor(rand() * GameConstants.ALL_SHAPES.length);
+  generateNewShape(): void {
+    const randomIndex = Math.floor(secureRandomNumber() * GameConstants.ALL_SHAPES.length);
     this.currentShape = GameConstants.ALL_SHAPES[randomIndex];
     this.showShape = true;
   }
@@ -267,11 +212,11 @@ export struct SourceArea {
 
             if (placement.canPlace) {
               this.showShape = false;
-              const newGrid = [...this.gridState.map(row => [...row])];
-              placement.targetCells.forEach(cell => {
-                newGrid[cell.row][cell.col] = this.currentShape.color;
-              });
-              this.gridState = newGrid;
+              this.gridState = applyShapeToGrid(
+                this.gridState,
+                placement.targetCells,
+                this.currentShape.color
+              ) as (Resource | null)[][];
               this.targetScore += 10;
               this.triggerHaptic(30);
               const lineWasCleared = this.checkForCompletedLines(placement.targetCells);
@@ -293,11 +238,4 @@ export struct SourceArea {
       GameConstants.BLOCK_PREVIEW_SIZE + 14))
     .width('100%')
   }
-}
-
-let randSeed: number = Date.now() & 0xffffffff;
-
-function rand(): number {
-  randSeed = (1664525 * randSeed + 1013904223) >>> 0;
-  return randSeed / 0x100000000;
 }

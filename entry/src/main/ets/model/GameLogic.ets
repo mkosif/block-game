@@ -10,14 +10,14 @@
  *  - RNG is deterministic: seed is passed explicitly so tests can be reproducible.
  */
 
-import { Cell, PlacementInfo, ShapeDefinition } from './Game';
+import { Cell, PlacementInfo } from './Game';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 /** null = empty cell, non-null object = occupied (holds a color Resource in production) */
-export type CellValue = object | null;
+export type CellValue = Resource | object | null;
 
 /** 2-D grid of cell values. Row-major: grid[row][col]. */
 export type GridState = CellValue[][];
@@ -79,7 +79,6 @@ export function cloneGrid(grid: GridState): GridState {
 /**
  * Advances the LCG seed by one step and returns the new seed and a float in [0, 1).
  * Divisor is 0x100000000 so value is strictly less than 1.0.
- * BUG-01 fix: using 0x100000000 instead of 0xffffffff.
  */
 export function nextRand(seed: number): RngResult {
   const nextSeed = (1664525 * seed + 1013904223) >>> 0;
@@ -115,7 +114,7 @@ export function randomShapeIndex(seed: number, shapeCount: number): ShapeIndexRe
  */
 export function canPlaceShape(
   grid: GridState,
-  shape: ShapeLayout,
+  shapeCells: Cell[],
   anchorRow: number,
   anchorCol: number
 ): PlacementInfo {
@@ -123,7 +122,7 @@ export function canPlaceShape(
   const targetCells: Cell[] = [];
   let canPlace = true;
 
-  for (const shapeCell of shape.cells) {
+  for (const shapeCell of shapeCells) {
     const targetRow = anchorRow + shapeCell.row;
     const targetCol = anchorCol + shapeCell.col;
     if (
@@ -163,12 +162,12 @@ export function applyShapeToGrid(
  */
 export function canShapeBePlacedAnywhere(
   grid: GridState,
-  shape: ShapeLayout,
+  shapeCells: Cell[],
   gridSize: number
 ): boolean {
   for (let row = 0; row < gridSize; row++) {
     for (let col = 0; col < gridSize; col++) {
-      if (canPlaceShape(grid, shape, row, col).canPlace) {
+      if (canPlaceShape(grid, shapeCells, row, col).canPlace) {
         return true;
       }
     }
